@@ -8,7 +8,7 @@ pub enum Zone {
     Lambert93
 }
 
-fn n(zone:Zone) -> f32 {
+pub fn n(zone:Zone) -> f32 {
     match zone {
         Zone::LambertI => 0.7604059656,
         Zone::LambertII => 0.7289686274,
@@ -19,7 +19,7 @@ fn n(zone:Zone) -> f32 {
     }
 }
 
-fn c(zone:Zone) -> f32 {
+pub fn c(zone:Zone) -> f32 {
     match zone {
         Zone::LambertI => 11603796.98,
         Zone::LambertII => 11745793.39,
@@ -30,7 +30,7 @@ fn c(zone:Zone) -> f32 {
     }
 }
 
-fn xs(zone:Zone) -> f32 {
+pub fn xs(zone:Zone) -> f32 {
     match zone {
         Zone::LambertIV => 234.358,
         Zone::Lambert93 =>  700000.0,
@@ -38,7 +38,7 @@ fn xs(zone:Zone) -> f32 {
     }
 }
 
-fn ys(zone:Zone) -> f32 {
+pub fn ys(zone:Zone) -> f32 {
     match zone {
         Zone::LambertI => 5657616.674,
         Zone::LambertII => 6199695.768,
