@@ -1,5 +1,7 @@
 extern crate std;
 
+use std::f32;
+
 #[derive(Clone, Copy)]
 pub enum AngleUnit {
    Radian,
@@ -50,6 +52,31 @@ impl Point {
     pub fn convert_unit(&mut self, unit:AngleUnit) {
         let point_unit = self.unit;
         self.scale(factor(point_unit, unit));
+    }
+
+    fn latitude_iso_from_latitude(lat: f32, e: f32) -> f32 {
+        return f32::log2(f32::tan(f32::consts::FRAC_PI_4+lat/2.0)*f32::powf((1.0-e*f32::sin(lat))/(1.0+e*f32::sin(lat)),e/2.0));
+    }
+
+    fn latitude_from_latitude_iso(lat_iso: f32, e: f32, eps: f32) -> f32 {
+
+        let mut phi_0 = 2.0*f32::atan(f32::exp(lat_iso)) - f32::consts::FRAC_PI_2;
+        let mut phi_i = 2.0*f32::atan(f32::powf((1.0+e*f32::sin(phi_0))/(1.0-e*f32::sin(phi_0)),e/2.0)*f32::exp(lat_iso)) - f32::consts::FRAC_PI_2;
+        let mut delta = 0.0;
+
+        loop {
+
+            delta = f32::abs(phi_i - phi_0);
+
+            if delta > eps {
+                break;
+            }
+
+            phi_0 = phi_i;
+            phi_i = 2.0*f32::atan(f32::powf((1.0+e*f32::sin(phi_0))/(1.0-e*f32::sin(phi_0)),e/2.0)*f32::exp(lat_iso)) - f32::consts::FRAC_PI_2;
+        }
+
+        return phi_i
     }
 }
 
