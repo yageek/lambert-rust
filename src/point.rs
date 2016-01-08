@@ -2,12 +2,15 @@ extern crate std;
 
 use std::f32;
 use ::zone;
+use ::consts;
+use ::algo;
 
 #[derive(Clone, Copy)]
 pub enum AngleUnit {
    Radian,
    Degree,
    Grad,
+   Meter,
 }
 
 fn factor(from:AngleUnit, to:AngleUnit) -> f32 {
@@ -28,15 +31,16 @@ fn factor(from:AngleUnit, to:AngleUnit) -> f32 {
         //Degree <-> Grad
         (AngleUnit::Degree, AngleUnit::Grad) => 200.0/180.0,
         (AngleUnit::Grad, AngleUnit::Degree) => 180.0/200.0,
-
+        _ => 1.0,
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Point {
-    x: f32,
-    y: f32,
-    z: f32,
-    unit: AngleUnit,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub unit: AngleUnit,
 }
 
 impl Point {
@@ -54,104 +58,32 @@ impl Point {
         self.y = self.y * factor;
         self.z = self.z * factor;
     }
-}
 
-fn latitude_iso_from_latitude(lat: f32, e: f32) -> f32 {
-    return f32::log2(f32::tan(f32::consts::FRAC_PI_4+lat/2.0)*f32::powf((1.0-e*f32::sin(lat))/(1.0+e*f32::sin(lat)),e/2.0));
-}
+    pub fn convert_wgs84(mut self, zone: zone::Zone){
 
-fn latitude_from_latitude_iso(lat_iso: f32, e: f32, eps: f32) -> f32 {
 
-    let mut phi_0 = 2.0*f32::atan(f32::exp(lat_iso)) - f32::consts::FRAC_PI_2;
-    let mut phi_i = 2.0*f32::atan(f32::powf((1.0+e*f32::sin(phi_0))/(1.0-e*f32::sin(phi_0)),e/2.0)*f32::exp(lat_iso)) - f32::consts::FRAC_PI_2;
-    let mut delta = 0.0;
-
-    loop {
-
-        delta = f32::abs(phi_i - phi_0);
-
-        if delta > eps {
-            break;
+        match self.unit {
+            AngleUnit::Meter => {},
+            _ => return
         }
 
-        phi_0 = phi_i;
-        phi_i = 2.0*f32::atan(f32::powf((1.0+e*f32::sin(phi_0))/(1.0-e*f32::sin(phi_0)),e/2.0)*f32::exp(lat_iso)) - f32::consts::FRAC_PI_2;
-    }
+        match zone {
+            zone::Zone::Lambert93 => self = algo::lambert_to_geographic(self, zone, consts::LON_MERID_IERS,consts::E_WGS84,consts::DEFAULT_EPS),
+            _ => {
+                self = algo::lambert_to_geographic(self, zone, consts::LON_MERID_PARIS, consts::E_CLARK_IGN, consts::DEFAULT_EPS);
+                self = algo::geographic_to_cartesian(self.x, self.y, self.z, consts::A_CLARK_IGN, consts::E_CLARK_IGN);
 
-    return phi_i
-}
+                self.x -= 168.0;
+                self.y -= 60.0;
+                self.z += 320.0;
 
-fn lambert_to_geographic(org: &Point, zone: zone::Zone, lon_merid: f32, e: f32, eps: f32) -> Point {
+                self = algo::cartesian_to_geographic(self, consts::LON_MERID_GREENWICH,consts::A_WGS84, consts::E_WGS84, consts::DEFAULT_EPS);
 
-    let n = zone::n(zone);
-    let C = zone::c(zone);
-    let x_s = zone::xs(zone);
-    let y_s = zone::ys(zone);
-
-    let mut x = org.x;
-    let mut y = org.y;
-
-    let mut lon: f32 = 0.0;
-    let mut gamma: f32 = 0.0;
-    let mut R: f32 = 0.0;
-    let mut lat_iso: f32 = 0.0;
-
-    R = f32::sqrt((x-x_s)*(x-x_s)+(y-y_s)*(y-y_s));
-    gamma = f32::atan((x-x_s)/(y_s-y));
-
-    lon = lon_merid + gamma/n;
-
-    lat_iso = -1.0/n*f32::log2(f32::abs(R/C));
-
-    let lat = latitude_from_latitude_iso(lat_iso, e, eps);
-
-    return Point { x: lon, y: lat, z: org.z, unit: org.unit};
-}
-
-
-fn lambert_normal(lat: f32, a: f32, e: f32) -> f32 {
-    return a/f32::sqrt(1.0-e*e*f32::sin(lat)*f32::sin(lat));
-}
-
-fn geographic_to_cartesian(lon: f32, lat: f32, he: f32, a: f32, e: f32) -> Point {
-
-    let N = lambert_normal(lat, a, e);
-
-    let mut pt = Point::new(0.0,0.0,0.0, AngleUnit::Radian);
-    pt.x = (N+he)*f32::cos(lat)*f32::cos(lon);
-
- 	pt.y = (N+he)*f32::cos(lat)*f32::sin(lon);
-
- 	pt.z = (N*(1.0-e*e)+he)*f32::sin(lat);
-    return pt
-}
-
-fn cartesian_to_geographic(point: &Point, meridien: f32, a: f32, e: f32, eps: f32) -> Point{
-
-    let (x, y, z) = (point.x, point.y, point.z);
-    let lon = meridien + f32::atan(y/x);
-
- 	let module = f32::sqrt(x*x + y*y);
-
- 	let mut phi_0 = f32::atan(z/(module*(1.0-(a*e*e)/f32::sqrt(x*x+y*y+z*z))));
- 	let mut phi_i = f32::atan(z/module/(1.0-a*e*e*f32::cos(phi_0)/(module * f32::sqrt(1.0-e*e*f32::sin(phi_0)*f32::sin(phi_0)))));
- 	let mut delta = 0.0;
-
-    loop {
-        delta  = f32::abs(phi_i - phi_0);
-
-        if delta > eps {
-            break;
+            }
         }
 
-        phi_0 = phi_i;
-        phi_i = f32::atan(z/module/(1.0-a*e*e*f32::cos(phi_0)/(module * f32::sqrt(1.0-e*e*f32::sin(phi_0)*f32::sin(phi_0)))));
-
-
+        self.unit = AngleUnit::Radian;
     }
-
-    let he = module/f32::cos(phi_i) - a/f32::sqrt(1.0-e*e*f32::sin(phi_i)*f32::sin(phi_i));
- 	return Point { x:lon, y:phi_i, z: he, unit: AngleUnit::Radian};
 }
 
 #[test]
@@ -177,4 +109,19 @@ fn test_convert(){
     assert_eq!(point.x, std::f32::consts::PI);
     assert_eq!(point.y, 2.0 * std::f32::consts::PI);
     assert_eq!(point.z, 0.0);
+}
+#[test]
+fn test_wgs84(){
+    let mut point = Point::new(994300.623,113409.981,0.0,AngleUnit::Meter);
+    let expected_point = Point::new(7.68639475277068, 48.5953456709144, 0.0, AngleUnit::Degree);
+    point.convert_wgs84(zone::Zone::Lambert93);
+    println!("x: {}, y: {}, z: {}", point.x, point.y, point.z);
+    point.convert_unit(AngleUnit::Degree);
+    println!("x: {}, y: {}, z: {}", point.x, point.y, point.z);
+    point.convert_unit(AngleUnit::Degree);
+    println!("x: {}, y: {}, z: {}", point.x, point.y, point.z);
+
+    assert_eq!(point.x, expected_point.x);
+    assert_eq!(point.y, expected_point.y);
+    assert_eq!(point.z, expected_point.z);
 }
