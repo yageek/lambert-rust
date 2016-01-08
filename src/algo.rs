@@ -6,6 +6,7 @@ pub fn latitude_iso_from_latitude(lat: f32, e: f32) -> f32 {
     return f32::log2(f32::tan(f32::consts::FRAC_PI_4+lat/2.0)*f32::powf((1.0-e*f32::sin(lat))/(1.0+e*f32::sin(lat)),e/2.0));
 }
 
+
 pub fn latitude_from_latitude_iso(lat_iso: f32, e: f32, eps: f32) -> f32 {
 
     let mut phi_0 = 2.0*f32::atan(f32::exp(lat_iso)) - f32::consts::FRAC_PI_2;
@@ -26,6 +27,20 @@ pub fn latitude_from_latitude_iso(lat_iso: f32, e: f32, eps: f32) -> f32 {
 
     return phi_i
 }
+#[test]
+fn test_latitude_from_latitude_iso(){
+    let lat_iso: [f32; 3] = [1.00552653648,-0.30261690060 ,0.2000000000];
+	let e: [f32; 3] = [0.08199188998,0.08199188998,0.08199188998];
+	let eps: [f32; 3] = [1.0e-11,1.0e-11,1.0e-11];
+
+	let phi: [f32; 3] = [0.87266462600, -0.29999999997 ,0.19998903369];
+
+		for index in 0..3 {
+			let result = latitude_from_latitude_iso(lat_iso[index], e[index], eps[index]);
+			assert_eq!(result, phi[index]);
+		}
+}
+
 
 pub fn lambert_to_geographic(org: point::Point, zone: zone::Zone, lon_merid: f32, e: f32, eps: f32) -> point::Point {
 

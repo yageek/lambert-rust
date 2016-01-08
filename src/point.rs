@@ -59,7 +59,7 @@ impl Point {
         self.z = self.z * factor;
     }
 
-    pub fn convert_wgs84(mut self, zone: zone::Zone){
+    pub fn convert_wgs84(&mut self, zone: zone::Zone){
 
 
         match self.unit {
@@ -67,22 +67,30 @@ impl Point {
             _ => return
         }
 
+        let mut pt = Point::new(0.0, 0.0, 0.0, self.unit);
+
         match zone {
-            zone::Zone::Lambert93 => self = algo::lambert_to_geographic(self, zone, consts::LON_MERID_IERS,consts::E_WGS84,consts::DEFAULT_EPS),
+            zone::Zone::Lambert93 => pt = algo::lambert_to_geographic(pt, zone, consts::LON_MERID_IERS,consts::E_WGS84,consts::DEFAULT_EPS),
             _ => {
-                self = algo::lambert_to_geographic(self, zone, consts::LON_MERID_PARIS, consts::E_CLARK_IGN, consts::DEFAULT_EPS);
-                self = algo::geographic_to_cartesian(self.x, self.y, self.z, consts::A_CLARK_IGN, consts::E_CLARK_IGN);
+                pt = algo::lambert_to_geographic(pt, zone, consts::LON_MERID_PARIS, consts::E_CLARK_IGN, consts::DEFAULT_EPS);
+                pt = algo::geographic_to_cartesian(pt.x, pt.y, pt.z, consts::A_CLARK_IGN, consts::E_CLARK_IGN);
 
-                self.x -= 168.0;
-                self.y -= 60.0;
-                self.z += 320.0;
+                pt.x -= 168.0;
+                pt.y -= 60.0;
+                pt.z += 320.0;
 
-                self = algo::cartesian_to_geographic(self, consts::LON_MERID_GREENWICH,consts::A_WGS84, consts::E_WGS84, consts::DEFAULT_EPS);
+                pt = algo::cartesian_to_geographic(pt, consts::LON_MERID_GREENWICH,consts::A_WGS84, consts::E_WGS84, consts::DEFAULT_EPS);
 
             }
         }
 
-        self.unit = AngleUnit::Radian;
+        pt.unit = AngleUnit::Radian;
+
+        self.x = pt.x;
+        self.y = pt.y;
+        self.z = pt.z;
+
+        self.unit = pt.unit;
     }
 }
 
