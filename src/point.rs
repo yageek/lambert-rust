@@ -126,6 +126,34 @@ fn geographic_to_cartesian(lon: f32, lat: f32, he: f32, a: f32, e: f32) -> Point
     return pt
 }
 
+fn cartesian_to_geographic(point: &Point, meridien: f32, a: f32, e: f32, eps: f32) -> Point{
+
+    let (x, y, z) = (point.x, point.y, point.z);
+    let lon = meridien + f32::atan(y/x);
+
+ 	let module = f32::sqrt(x*x + y*y);
+
+ 	let mut phi_0 = f32::atan(z/(module*(1.0-(a*e*e)/f32::sqrt(x*x+y*y+z*z))));
+ 	let mut phi_i = f32::atan(z/module/(1.0-a*e*e*f32::cos(phi_0)/(module * f32::sqrt(1.0-e*e*f32::sin(phi_0)*f32::sin(phi_0)))));
+ 	let mut delta = 0.0;
+
+    loop {
+        delta  = f32::abs(phi_i - phi_0);
+
+        if delta > eps {
+            break;
+        }
+
+        phi_0 = phi_i;
+        phi_i = f32::atan(z/module/(1.0-a*e*e*f32::cos(phi_0)/(module * f32::sqrt(1.0-e*e*f32::sin(phi_0)*f32::sin(phi_0)))));
+
+
+    }
+
+    let he = module/f32::cos(phi_i) - a/f32::sqrt(1.0-e*e*f32::sin(phi_i)*f32::sin(phi_i));
+ 	return Point { x:lon, y:phi_i, z: he, unit: AngleUnit::Radian};
+}
+
 #[test]
 fn test_new(){
     let point = Point::new(55.0,1.0,0.0,AngleUnit::Degree);
