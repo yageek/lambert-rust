@@ -32,9 +32,12 @@ pub fn c(zone:Zone) -> f32 {
 
 pub fn xs(zone:Zone) -> f32 {
     match zone {
+        Zone::LambertI => 600000.0,
+        Zone::LambertII => 600000.0,
+        Zone::LambertIII => 600000.0,
         Zone::LambertIV => 234.358,
+        Zone::LambertIIe => 600000.0,
         Zone::Lambert93 =>  700000.0,
-        _ => 600000.0,
     }
 }
 

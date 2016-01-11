@@ -1,6 +1,6 @@
-extern crate std;
+use std;
 
-pub const DEFAULT_EPS: f32 =  1e-10;
+pub const DEFAULT_EPS: f32 =  1e-15;
 pub const E_CLARK_IGN: f32 = 0.08248325676;
 pub const E_WGS84: f32 = 0.08181919106;
 
