@@ -37,7 +37,7 @@ fn test_latitude_from_latitude_iso(){
 
 		for index in 0..3 {
 			let result = latitude_from_latitude_iso(lat_iso[index], e[index], eps[index]);
-			assert_eq!(result, phi[index]);
+			assert_delta!(result, phi[index], 1e-4);
 		}
 }
 

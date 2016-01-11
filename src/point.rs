@@ -5,6 +5,15 @@ use ::zone;
 use ::consts;
 use ::algo;
 
+macro_rules! assert_delta {
+    ( $x:expr, $y:expr, $d:expr ) => {
+        {
+            if !($x - $y < $d || $y - $x < $d) { panic!();}
+        }
+    };
+}
+
+
 #[derive(Clone, Copy)]
 pub enum AngleUnit {
    Radian,
@@ -94,6 +103,10 @@ impl Point {
     }
 }
 
+fn main() {
+    assert_eq!(vec![1,2,3], [1, 2, 3]);
+}
+
 #[test]
 fn test_new(){
     let point = Point::new(55.0,1.0,0.0,AngleUnit::Degree);
@@ -129,7 +142,8 @@ fn test_wgs84(){
     point.convert_unit(AngleUnit::Degree);
     println!("x: {}, y: {}, z: {}", point.x, point.y, point.z);
 
-    assert_eq!(point.x, expected_point.x);
-    assert_eq!(point.y, expected_point.y);
-    assert_eq!(point.z, expected_point.z);
+    let delta = 1e-7;
+    assert_delta!(point.x, expected_point.x, delta);
+    assert_delta!(point.y, expected_point.y, delta);
+    assert_delta!(point.z, expected_point.z, delta);
 }
