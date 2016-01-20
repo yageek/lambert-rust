@@ -1,7 +1,7 @@
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE.md)
 
 # lambert-rust
-lamber-rust is a crate helping to convert Lambert coordinates to WGS84.
+lambert-rust is a crate helping to convert Lambert coordinates to WGS84.
 
 # Usage
 
