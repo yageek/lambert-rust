@@ -1,3 +1,4 @@
+[![Crates version](https://img.shields.io/crates/v/lambert.svg?)](https://crates.io/crates/lambert)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE.md)
 
 # lambert-rust
