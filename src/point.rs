@@ -7,12 +7,12 @@ use ::algo;
 macro_rules! assert_delta {
     ( $left:expr, $right:expr, $d:expr ) => {
         {
-            if($left > $right){
-                if($left - $right > $d){
+            if $left > $right {
+                if ($left - $right) > $d {
                     panic!("left:{} | right:{} | delta:{}\n", $left, $right, ($left - $right));
                  }
             } else {
-                if($right - $left > $d) {
+                if ($right - $left) > $d {
                     panic!("left:{} | right:{} | delta:{}\n", $left, $right, ($right - $left));
                 }
             }
@@ -167,6 +167,7 @@ fn test_wgs84_lambert93(){
     assert_delta!(point.x, expected_point.x, delta);
     assert_delta!(point.y, expected_point.y, delta);
 }
+
 #[test]
 fn test_wgs84_lambertIIE(){
     let mut point = Point::new(369419.0,1986498.0,0.0,AngleUnit::Meter);
