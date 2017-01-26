@@ -1,23 +1,21 @@
 use ::point;
 use ::zone;
-use ::consts;
 use std::f32;
 
 
 /// Convert latitude to latitude iso
-pub fn latitude_iso_from_latitude(lat: f32, e: f32) -> f32 {
+fn latitude_iso_from_latitude(lat: f32, e: f32) -> f32 {
     return f32::log(f32::tan(f32::consts::FRAC_PI_4+lat/2.0)*f32::powf((1.0-e*f32::sin(lat))/(1.0+e*f32::sin(lat)),e/2.0), f32::consts::E);
 }
 
-pub fn latitude_from_latitude_iso(lat_iso: f32, e: f32, eps: f32) -> f32 {
+fn latitude_from_latitude_iso(lat_iso: f32, e: f32, eps: f32) -> f32 {
 
     let mut phi_0 = 2.0*f32::atan(f32::exp(lat_iso)) - f32::consts::FRAC_PI_2;
     let mut phi_i = 2.0*f32::atan(f32::powf((1.0+e*f32::sin(phi_0))/(1.0-e*f32::sin(phi_0)),e/2.0)*f32::exp(lat_iso)) - f32::consts::FRAC_PI_2;
-    let mut delta = 0.0;
 
     loop {
 
-        delta = f32::abs(phi_i - phi_0);
+       let delta = f32::abs(phi_i - phi_0);
 
         if delta < eps {
             break;
@@ -29,6 +27,7 @@ pub fn latitude_from_latitude_iso(lat_iso: f32, e: f32, eps: f32) -> f32 {
 
     return phi_i
 }
+
 #[test]
 fn test_latitude_from_latitude_iso(){
     let lat_iso: [f32; 3] = [1.00552653648,-0.30261690060 ,0.2000000000];
@@ -47,25 +46,20 @@ fn test_latitude_from_latitude_iso(){
 pub fn lambert_to_geographic(org: point::Point, zone: zone::Zone, lon_merid: f32, e: f32, eps: f32) -> point::Point {
 
     let n = zone::n(zone);
-    let C = zone::c(zone);
+    let c = zone::c(zone);
     let x_s = zone::xs(zone);
     let y_s = zone::ys(zone);
 
-    let mut x = org.x;
-    let mut y = org.y;
+    let x = org.x;
+    let y = org.y;
 
-    let mut lon: f32 = 0.0;
-    let mut gamma: f32 = 0.0;
-    let mut R: f32 = 0.0;
-    let mut lat_iso: f32 = 0.0;
+    let r = f32::sqrt((x-x_s)*(x-x_s)+(y-y_s)*(y-y_s));
 
-    R = f32::sqrt((x-x_s)*(x-x_s)+(y-y_s)*(y-y_s));
+    let gamma = f32::atan((x-x_s)/(y_s-y));
 
-    gamma = f32::atan((x-x_s)/(y_s-y));
+    let lon = lon_merid + gamma/n;
 
-    lon = lon_merid + gamma/n;
-
-    lat_iso = -1.0/n*f32::log(f32::abs(R/C), f32::consts::E);
+    let lat_iso = -1.0/n*f32::log(f32::abs(r/c), f32::consts::E);
 
     let lat = latitude_from_latitude_iso(lat_iso, e, eps);
 
@@ -102,14 +96,14 @@ fn test_lambert_normal(){
 
 pub fn geographic_to_cartesian(lon: f32, lat: f32, he: f32, a: f32, e: f32) -> point::Point {
 
-    let N = lambert_normal(lat, a, e);
+    let n = lambert_normal(lat, a, e);
 
     let mut pt = point::Point::new(0.0,0.0,0.0, point::AngleUnit::Radian);
-    pt.x = (N+he)*f32::cos(lat)*f32::cos(lon);
+    pt.x = (n+he)*f32::cos(lat)*f32::cos(lon);
 
- 	pt.y = (N+he)*f32::cos(lat)*f32::sin(lon);
+ 	pt.y = (n+he)*f32::cos(lat)*f32::sin(lon);
 
- 	pt.z = (N*(1.0-e*e)+he)*f32::sin(lat);
+ 	pt.z = (n*(1.0-e*e)+he)*f32::sin(lat);
     return pt
 }
 
@@ -146,7 +140,7 @@ pub fn cartesian_to_geographic(point: point::Point, meridien: f32, a: f32, e: f3
 
  	let mut phi_0 = f32::atan(z/(module*(1.0-(a*e*e)/f32::sqrt(x*x+y*y+z*z))));
  	let mut phi_i = f32::atan(z/module/(1.0-a*e*e*f32::cos(phi_0)/(module * f32::sqrt(1.0-e*e*f32::sin(phi_0)*f32::sin(phi_0)))));
- 	let mut delta = 0.0;
+ 	let mut delta;
 
     loop {
         delta = f32::abs(phi_i - phi_0);
