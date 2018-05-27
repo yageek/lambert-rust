@@ -1,5 +1,6 @@
-use ::point;
-use ::zone;
+use point::Point;
+use zone;
+use zone::Zone;
 use std::f32;
 
 
@@ -43,7 +44,7 @@ fn test_latitude_from_latitude_iso(){
 }
 
 
-pub fn lambert_to_geographic(org: point::Point, zone: zone::Zone, lon_merid: f32, e: f32, eps: f32) -> point::Point {
+pub fn lambert_to_geographic(org: Point, zone: Zone, lon_merid: f32, e: f32, eps: f32) -> Point {
 
     let n = zone::n(zone);
     let c = zone::c(zone);
@@ -63,13 +64,13 @@ pub fn lambert_to_geographic(org: point::Point, zone: zone::Zone, lon_merid: f32
 
     let lat = latitude_from_latitude_iso(lat_iso, e, eps);
 
-    return point::Point { x: lon, y: lat, z: org.z, unit: point::AngleUnit::Radian};
+    return Point { x: lon, y: lat, z: org.z};
 }
 
 #[test]
 fn test_lambert_to_geographic(){
-    let expected = point::Point::new(0.145512099,0.872664626, 0.0, point::AngleUnit::Radian);
-    let org = point::Point::new(1029705.083, 272723.849, 0.0, point::AngleUnit::Radian);
+    let expected = Point::new(0.145512099,0.872664626, 0.0);
+    let org = Point::new(1029705.083, 272723.849, 0.0);
 
     let delta = 1e-7;
     let dest = lambert_to_geographic(org, zone::Zone::LambertI, ::consts::LON_MERID_GREENWICH, ::consts::E_CLARK_IGN, delta);
@@ -94,11 +95,11 @@ fn test_lambert_normal(){
     assert_eq!(n, calc);
 }
 
-pub fn geographic_to_cartesian(lon: f32, lat: f32, he: f32, a: f32, e: f32) -> point::Point {
+pub fn geographic_to_cartesian(lon: f32, lat: f32, he: f32, a: f32, e: f32) -> Point {
 
     let n = lambert_normal(lat, a, e);
 
-    let mut pt = point::Point::new(0.0,0.0,0.0, point::AngleUnit::Radian);
+    let mut pt = Point::new(0.0, 0.0, 0.0);
     pt.x = (n+he)*f32::cos(lat)*f32::cos(lon);
 
  	pt.y = (n+he)*f32::cos(lat)*f32::sin(lon);
@@ -116,9 +117,9 @@ fn test_geographic_to_cartesian(){
 	let e:[f32; 3] = [0.08248325679 ,0.08248325679 ,0.08248325679];
 
     let points  = vec![
-        point::Point::new(6376064.6955,111294.6230,128984.7250, point::AngleUnit::Meter),
-        point::Point::new(6378232.2149,18553.5780,0.0, point::AngleUnit::Meter),
-        point::Point::new(6376897.5369,37099.7050,-202730.9070, point::AngleUnit::Meter)
+        Point::new(6376064.6955, 111294.6230, 128984.7250),
+        Point::new(6378232.2149, 18553.5780, 0.0),
+        Point::new(6376897.5369, 37099.7050, -202730.9070)
         ];
 
     let delta = 1e-1;
@@ -131,7 +132,7 @@ fn test_geographic_to_cartesian(){
     }
 }
 
-pub fn cartesian_to_geographic(point: point::Point, meridien: f32, a: f32, e: f32, eps: f32) -> point::Point{
+pub fn cartesian_to_geographic(point: Point, meridien: f32, a: f32, e: f32, eps: f32) -> Point{
 
     let (x, y, z) = (point.x, point.y, point.z);
     let lon = meridien + f32::atan(y/x);
@@ -152,7 +153,7 @@ pub fn cartesian_to_geographic(point: point::Point, meridien: f32, a: f32, e: f3
     }
 
     let he = module/f32::cos(phi_i) - a/f32::sqrt(1.0-e*e*f32::sin(phi_i)*f32::sin(phi_i));
- 	return point::Point { x:lon, y:phi_i, z: he, unit: point::AngleUnit::Radian};
+ 	return Point { x:lon, y:phi_i, z: he};
 }
 
 #[test]
@@ -171,7 +172,7 @@ fn test_cartesian_to_geographic(){
 
     let delta = 1e-8;
     for i in 0..3 {
-        let sample = point::Point::new(x[i],y[i],z[i], point::AngleUnit::Radian);
+        let sample = Point::new(x[i],y[i],z[i]);
 
 		let val = cartesian_to_geographic(sample,::consts::LON_MERID_PARIS,a[i],e[i],eps[i]);
 

@@ -9,8 +9,12 @@ lambert-rust is a crate helping to convert Lambert coordinates to WGS84.
 # Usage
 
 ```rust
+    // Import crate
     extern crate lambert;
-    let mut loc = lambert::point::Point::new(668832.5384, 6950138.7285,lambert::zone::Zone::Lambert93);
 
+    // Import element
+    use lambert::prelude::*;
+    let mut loc = Point::new(668832.5384, 6950138.7285, 0.0, Zone::Lambert93);
+    
     println!("WGS84 Lat:{}, Lon:{}", loc.y, loc.x);
 ```
