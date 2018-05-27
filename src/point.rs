@@ -4,6 +4,7 @@ use zone::Zone;
 use consts;
 use algo;
 
+#[macro_export]
 macro_rules! assert_delta {
     ( $left:expr, $right:expr, $d:expr ) => {
         {
