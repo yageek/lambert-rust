@@ -1,6 +1,6 @@
 [package]
 name = "lambert"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Heinrich, Yannick <yannick.heinrich@gmail.com>"]
 
 description = "lamber-rust is a crate helping to convert Lambert coordinates to WGS84"
