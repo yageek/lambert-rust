@@ -100,65 +100,74 @@ impl Point {
     }
 }
 
-#[test]
-fn test_new() {
-    let point = Point::new(55.0, 1.0, 0.0);
-    assert_eq!(point.x, 55.0);
-    assert_eq!(point.y, 1.0);
-    assert_eq!(point.z, 0.0);
-}
+#[cfg(test)]
+mod tests {
 
-#[test]
-fn test_scale() {
-    let point = Point::new(55.0, 1.0, 0.0)
-                .scale(2.0);
-    assert_eq!(point.x, 110.0);
-    assert_eq!(point.y, 2.0);
-    assert_eq!(point.z, 0.0);
-}
+    use super::{Point, AngleUnit};
+    use zone::Zone;
+    use std;
 
-#[test]
-fn test_convert() {
-    let point = Point::new(180.0, 360.0, 0.0)
-                .convert_unit(AngleUnit::Degree, AngleUnit::Radian);
-    assert_eq!(point.x, std::f32::consts::PI);
-    assert_eq!(point.y, 2.0 * std::f32::consts::PI);
-    assert_eq!(point.z, 0.0);
-}
+    #[test]
+    fn test_new() {
+        let point = Point::new(55.0, 1.0, 0.0);
+        assert_eq!(point.x, 55.0);
+        assert_eq!(point.y, 1.0);
+        assert_eq!(point.z, 0.0);
+    }
 
-#[test]
-fn test_wgs84_zone_1(){
-    let expected_point = Point::new(7.68639475277068, 48.5953456709144, 0.0);
-    let point = Point::new(994300.623, 113409.981, 0.0)
-                .convert_wgs84(Zone::LambertI)
-                .convert_unit(AngleUnit::Radian, AngleUnit::Degree);
+    #[test]
+    fn test_scale() {
+        let point = Point::new(55.0, 1.0, 0.0)
+                    .scale(2.0);
+        assert_eq!(point.x, 110.0);
+        assert_eq!(point.y, 2.0);
+        assert_eq!(point.z, 0.0);
+    }
 
-    let delta = 1e-3;
-    assert_delta!(point.x, expected_point.x, delta);
-    assert_delta!(point.y, expected_point.y, delta);
+    #[test]
+    fn test_convert() {
+        let point = Point::new(180.0, 360.0, 0.0)
+                    .convert_unit(AngleUnit::Degree, AngleUnit::Radian);
+        assert_eq!(point.x, std::f32::consts::PI);
+        assert_eq!(point.y, 2.0 * std::f32::consts::PI);
+        assert_eq!(point.z, 0.0);
+    }
 
-}
-
-#[test]
-fn test_wgs84_lambert93(){
-    let expected_point = Point::new(2.56865, 49.64961, 0.0);
-    let point = Point::new(668832.5384, 6950138.7285, 0.0)
-                .convert_wgs84(Zone::Lambert93)
-                .convert_unit(AngleUnit::Radian, AngleUnit::Degree);
-    let delta = 1e-3;
-
-    assert_delta!(point.x, expected_point.x, delta);
-    assert_delta!(point.y, expected_point.y, delta);
-}
-
-#[test]
-fn test_wgs84_lambert_iie(){
-    let expected_point = Point::new(-0.579117201473994, 44.84071560809383, 0.0);
-    let point = Point::new(369419.0,1986498.0,0.0)
-                    .convert_wgs84(Zone::LambertIIe)
+    #[test]
+    fn test_wgs84_zone_1(){
+        let expected_point = Point::new(7.68639475277068, 48.5953456709144, 0.0);
+        let point = Point::new(994300.623, 113409.981, 0.0)
+                    .convert_wgs84(Zone::LambertI)
                     .convert_unit(AngleUnit::Radian, AngleUnit::Degree);
-    let delta = 1e-3;
 
-    assert_delta!(point.x, expected_point.x, delta);
-    assert_delta!(point.y, expected_point.y, delta);
+        let delta = 1e-3;
+        assert_delta!(point.x, expected_point.x, delta);
+        assert_delta!(point.y, expected_point.y, delta);
+
+    }
+
+    #[test]
+    fn test_wgs84_lambert93(){
+        let expected_point = Point::new(2.56865, 49.64961, 0.0);
+        let point = Point::new(668832.5384, 6950138.7285, 0.0)
+                    .convert_wgs84(Zone::Lambert93)
+                    .convert_unit(AngleUnit::Radian, AngleUnit::Degree);
+        let delta = 1e-3;
+
+        assert_delta!(point.x, expected_point.x, delta);
+        assert_delta!(point.y, expected_point.y, delta);
+    }
+
+    #[test]
+    fn test_wgs84_lambert_iie(){
+        let expected_point = Point::new(-0.579117201473994, 44.84071560809383, 0.0);
+        let point = Point::new(369419.0,1986498.0,0.0)
+                        .convert_wgs84(Zone::LambertIIe)
+                        .convert_unit(AngleUnit::Radian, AngleUnit::Degree);
+        let delta = 1e-3;
+
+        assert_delta!(point.x, expected_point.x, delta);
+        assert_delta!(point.y, expected_point.y, delta);
+    }
+
 }
