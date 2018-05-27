@@ -5,6 +5,7 @@ use std::f32;
 
 
 /// Convert latitude to latitude iso
+#[allow(dead_code)]
 fn latitude_iso_from_latitude(lat: f32, e: f32) -> f32 {
     return f32::log(f32::tan(f32::consts::FRAC_PI_4+lat/2.0)*f32::powf((1.0-e*f32::sin(lat))/(1.0+e*f32::sin(lat)),e/2.0), f32::consts::E);
 }

@@ -9,11 +9,11 @@ macro_rules! assert_delta {
         {
             if $left > $right {
                 if ($left - $right) > $d {
-                    panic!("left:{} | right:{} | delta:{}\n", $left, $right, ($left - $right));
+                    panic!("left: {} | right: {} | delta: {}\n", $left, $right, ($left - $right));
                  }
             } else {
                 if ($right - $left) > $d {
-                    panic!("left:{} | right:{} | delta:{}\n", $left, $right, ($right - $left));
+                    panic!("left: {} | right: {} | delta: {}\n", $left, $right, ($right - $left));
                 }
             }
         }
@@ -82,10 +82,10 @@ impl Point {
     /// Convert the `MeterPoint` to WGS84
     pub fn convert_wgs84(&self, zone: Zone) -> Point {
        
-        let mut pt = Point::new(self.x, self.y, self.z);
+        let mut pt: Point = *self;
 
         match zone {
-            Zone::Lambert93 => pt = algo::lambert_to_geographic(pt, zone, consts::LON_MERID_IERS,consts::E_WGS84,consts::DEFAULT_EPS),
+            Zone::Lambert93 => pt = algo::lambert_to_geographic(pt, zone, consts::LON_MERID_IERS, consts::E_WGS84, consts::DEFAULT_EPS),
             _ => {
                 pt = algo::lambert_to_geographic(pt, zone, consts::LON_MERID_PARIS, consts::E_CLARK_IGN, consts::DEFAULT_EPS);
                 pt = algo::geographic_to_cartesian(pt.x, pt.y, pt.z, consts::A_CLARK_IGN, consts::E_CLARK_IGN);
@@ -93,7 +93,7 @@ impl Point {
                 pt.x -= 168.0;
                 pt.y -= 60.0;
                 pt.z += 320.0;
-                pt = algo::cartesian_to_geographic(pt, consts::LON_MERID_GREENWICH,consts::A_WGS84, consts::E_WGS84, consts::DEFAULT_EPS);
+                pt = algo::cartesian_to_geographic(pt, consts::LON_MERID_GREENWICH, consts::A_WGS84, consts::E_WGS84, consts::DEFAULT_EPS);
             }
         }
         pt
@@ -131,7 +131,7 @@ fn test_wgs84_zone_1(){
     let expected_point = Point::new(7.68639475277068, 48.5953456709144, 0.0);
     let point = Point::new(994300.623, 113409.981, 0.0)
                 .convert_wgs84(Zone::LambertI)
-                .convert_unit(AngleUnit::Meter, AngleUnit::Degree);
+                .convert_unit(AngleUnit::Radian, AngleUnit::Degree);
 
     let delta = 1e-3;
     assert_delta!(point.x, expected_point.x, delta);
@@ -144,7 +144,7 @@ fn test_wgs84_lambert93(){
     let expected_point = Point::new(2.56865, 49.64961, 0.0);
     let point = Point::new(668832.5384, 6950138.7285, 0.0)
                 .convert_wgs84(Zone::Lambert93)
-                .convert_unit(AngleUnit::Meter, AngleUnit::Degree);
+                .convert_unit(AngleUnit::Radian, AngleUnit::Degree);
     let delta = 1e-3;
 
     assert_delta!(point.x, expected_point.x, delta);
@@ -156,7 +156,7 @@ fn test_wgs84_lambert_iie(){
     let expected_point = Point::new(-0.579117201473994, 44.84071560809383, 0.0);
     let point = Point::new(369419.0,1986498.0,0.0)
                     .convert_wgs84(Zone::LambertIIe)
-                    .convert_unit(AngleUnit::Meter, AngleUnit::Degree);
+                    .convert_unit(AngleUnit::Radian, AngleUnit::Degree);
     let delta = 1e-3;
 
     assert_delta!(point.x, expected_point.x, delta);
