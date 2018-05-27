@@ -4,23 +4,6 @@ use zone::Zone;
 use consts;
 use algo;
 
-#[macro_export]
-macro_rules! assert_delta {
-    ( $left:expr, $right:expr, $d:expr ) => {
-        {
-            if $left > $right {
-                if ($left - $right) > $d {
-                    panic!("left: {} | right: {} | delta: {}\n", $left, $right, ($left - $right));
-                 }
-            } else {
-                if ($right - $left) > $d {
-                    panic!("left: {} | right: {} | delta: {}\n", $left, $right, ($right - $left));
-                }
-            }
-        }
-    };
-}
-
 /// The `AngleUnit` enum reprensts the unity expressed by
 /// by the coordinate.
 #[derive(Clone, Copy)]
@@ -55,7 +38,7 @@ fn factor(from: AngleUnit, to: AngleUnit) -> f32 {
         _ => 1.0,
     }
 }
-/// The `Point` struct represents a Point
+/// The `Point` struct represents a point in space
 #[derive(Clone, Copy)]
 pub struct Point {
     pub x: f32,
@@ -64,24 +47,24 @@ pub struct Point {
 }
 
 impl Point {
-    /// `new` returns a new Point.
+    /// `new` creates a new Point.
     pub fn new(x: f32, y: f32, z: f32) -> Point {
         Point { x: x, y: y, z: z}
     }
-    /// `convertunit` convert the point to the given unit.
-    /// Convert to Meter does not transform x,y,z.
+    /// `convert_unit` converts the point between units.
     pub fn convert_unit(&self, from: AngleUnit, to: AngleUnit) -> Point {
         self.scale(factor(from, to))
     }
 
-    /// `scale` scale the point
+    /// `scale` scales the point
     /// by a factor value.
     fn scale(&self, factor:f32) -> Point {
         Point { x: self.x *factor, y: self.y *factor, z: self.z *factor }
     }
 
-    /// Convert the `MeterPoint` to WGS84
-    pub fn convert_wgs84(&self, zone: Zone) -> Point {
+    /// Converts a point in meter coordinates to
+    /// radians.
+    pub fn wgs84_from_meter(&self, zone: Zone) -> Point {
        
         let mut pt: Point = *self;
 
@@ -104,6 +87,21 @@ impl Point {
 #[cfg(test)]
 mod tests {
 
+    macro_rules! assert_delta {
+        ( $left:expr, $right:expr, $d:expr ) => {
+            {
+                if $left > $right {
+                    if ($left - $right) > $d {
+                        panic!("left: {} | right: {} | delta: {}\n", $left, $right, ($left - $right));
+                    }
+                } else {
+                    if ($right - $left) > $d {
+                        panic!("left: {} | right: {} | delta: {}\n", $left, $right, ($right - $left));
+                    }
+                }
+            }
+        };
+    }
     use super::{Point, AngleUnit};
     use zone::Zone;
     use std;
@@ -138,7 +136,7 @@ mod tests {
     fn test_wgs84_zone_1(){
         let expected_point = Point::new(7.68639475277068, 48.5953456709144, 0.0);
         let point = Point::new(994300.623, 113409.981, 0.0)
-                    .convert_wgs84(Zone::LambertI)
+                    .wgs84_from_meter(Zone::LambertI)
                     .convert_unit(AngleUnit::Radian, AngleUnit::Degree);
 
         let delta = 1e-3;
@@ -151,7 +149,7 @@ mod tests {
     fn test_wgs84_lambert93(){
         let expected_point = Point::new(2.56865, 49.64961, 0.0);
         let point = Point::new(668832.5384, 6950138.7285, 0.0)
-                    .convert_wgs84(Zone::Lambert93)
+                    .wgs84_from_meter(Zone::Lambert93)
                     .convert_unit(AngleUnit::Radian, AngleUnit::Degree);
         let delta = 1e-3;
 
@@ -163,7 +161,7 @@ mod tests {
     fn test_wgs84_lambert_iie(){
         let expected_point = Point::new(-0.579117201473994, 44.84071560809383, 0.0);
         let point = Point::new(369419.0,1986498.0,0.0)
-                        .convert_wgs84(Zone::LambertIIe)
+                        .wgs84_from_meter(Zone::LambertIIe)
                         .convert_unit(AngleUnit::Radian, AngleUnit::Degree);
         let delta = 1e-3;
 

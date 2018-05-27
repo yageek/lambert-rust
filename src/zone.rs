@@ -1,3 +1,5 @@
+
+/// `Zone` represents a Lambert projection zone.
 #[derive(Copy, Clone)]
 pub enum Zone {
     LambertI,

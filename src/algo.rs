@@ -96,6 +96,22 @@ pub fn cartesian_to_geographic(point: Point, meridien: f32, a: f32, e: f32, eps:
 #[cfg(test)]
 mod tests {
 
+    macro_rules! assert_delta {
+        ( $left:expr, $right:expr, $d:expr ) => {
+            {
+                if $left > $right {
+                    if ($left - $right) > $d {
+                        panic!("left: {} | right: {} | delta: {}\n", $left, $right, ($left - $right));
+                    }
+                } else {
+                    if ($right - $left) > $d {
+                        panic!("left: {} | right: {} | delta: {}\n", $left, $right, ($right - $left));
+                    }
+                }
+            }
+        };
+    }
+
     use point::Point;
     use zone::Zone;
 
